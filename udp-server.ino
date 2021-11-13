@@ -6,8 +6,8 @@ WiFiUDP udp;
 
 DFRobot_OSD osd(4); // D7
 
-const char *ssid = "WIFI SA BAHAY";
-const char *password = "waraymanpassword";
+const char *ssid = "";
+const char *password = "";
 
 byte ledPin1 = 2; // D5
 byte ledPin2 = 5; // D6
