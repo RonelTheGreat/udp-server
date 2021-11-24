@@ -22,7 +22,7 @@ char nameOfDevice2[64] = "No Name";
 char stateOfDevice1[8] = "OFF";
 char stateOfDevice2[8] = "OFF";
 
-unsigned int udpPort = 56095;
+unsigned int udpPort = 1032;
 
 float temperature = 0.0;
 float humidity = 0.0;
