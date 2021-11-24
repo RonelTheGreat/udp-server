@@ -4,7 +4,8 @@
 
 WiFiUDP udp;
 
-DFRobot_OSD osd(4); // D7
+const int cs = D3;
+DFRobot_OSD osd(cs);
 
 const char *ssid = "";
 const char *password = "";
@@ -77,7 +78,7 @@ void parseIncomingPackets() {
   if (packetSize > 0) {
     udp.read(packetBuffer, packetSize);
     packetBuffer[packetSize] = NULL;
-    
+
     parseDevicePackets();
     parseAndroidPackets();
     parseDHT11Packets();
@@ -91,18 +92,7 @@ void parseAndroidPackets() {
     return;
   }
 
-  byte packetBufferLength = strlen(packetBuffer);
-  byte finalDeviceNameLength = packetBufferLength - 1;
-  char deviceName[finalDeviceNameLength];
-
-  for (byte i = 0; i < strlen(packetBuffer); i++) {
-    if (i == 0) {
-      continue;
-    }
-    deviceName[i - 1] = packetBuffer[i];
-  }
-  deviceName[finalDeviceNameLength] = NULL;
-
+  char *deviceName = strtok(packetBuffer, &firstChar);
   if (firstChar == '@') {
     strcpy(nameOfDevice1, deviceName);
   } else {
