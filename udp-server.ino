@@ -85,6 +85,8 @@ void loop() {
 
   // This will call/execute the function  in POINT 4
   parseIncomingPackets();
+
+  // This will call/execute the function in POINT 9
   displayData();
 }
 
@@ -320,43 +322,64 @@ void checkTemperature() {
   }
 }
 
-
+//------ POINT 9 ---------//
+// This function will display all the data on the screen every second.
 void displayData() {
+  // This will check if the time passed since the board was turned ON
+  // minus the previously recorded time is greater than or equal to the screen timeout (i.e. 1 second).
+  // for example:
+  //    lastScreenRefresh = 0;
+  //    timeElapsed = 1002
+  //    screentTimeout = 1000; <- the value of this variable is constant
+  //    therefore, 1002 - 0 = 1002
+  // so the code inside the curly braces will be executed
   if (timeElapsed - lastScreenRefresh >= screenTimeout) {
+    // Then will store the current time to be used on the next timing
     lastScreenRefresh = timeElapsed;
+
+    // This will call/execute the function in POINT 10
     displayTemperature();
+
+    // These 3 remaining function calls have the same explanation in POINT 10
     displayHumidity();
     displayDevice1();
     displayDevice2();
     Serial.println();
   }
 }
-void displayDevice1() {
-  // 1: <device name> :<state (initially off)>
-  char finalStringToDisplay[32];
-  sprintf(finalStringToDisplay, "1: %s :%s", nameOfDevice1, stateOfDevice1);
-  osd.displayString(14, 2, finalStringToDisplay);
-  Serial.println(finalStringToDisplay);
-}
-void displayDevice2() {
-  // 2: <device name> :<state (initially off)>
-  char finalStringToDisplay[32];
-  sprintf(finalStringToDisplay, "2: %s :%s", nameOfDevice2, stateOfDevice2);
-  osd.displayString(14, 16, finalStringToDisplay);
-  Serial.println(finalStringToDisplay);
-}
+
+
+//------ POINT 10 ---------//
 void displayTemperature() {
-  // convert float to string
+  // Prepare buffer/container in which the converted (i.e. converted from float to string) temperature is stored.
   char temperatureString[16];
+
+  // dtostrf() will convert a floating point number to a string.
+  // For example: from 30.00 to "30.00"
+  // dtostrf() accepts 3 arguments
+  // (i.e. <value to be converted>, <how many digits are there>, <how many digits after the decimal place>, <where to store the converted value>)
   dtostrf(temperature, 4, 2, temperatureString);
 
+  // Prepare buffer/container for the final formatted string that will be shown on the screen.
   char finalStringToDisplay[32];
+
+  // sprintf() will format the string using placeholders.
+  // In this case, the final output we want is, for example: Temp: 30*C 
+  // sprintf() accepts 3 main arguments (i.e. <where to store the formatted string>, <the format of the string>, <the value of placeholder/s>).
+  // <where to store the formatted string>, self-explanatory. In this case finalStringToDisplay buffer/container is used.
+  // <the format of the string>, what we want to output by using placeholders for dynamic values.
+  // Example of placeholder: %s     which means we want to place a string.
+  // <the value of placeholder/s>, this will substitute the placeholders in order.
   sprintf(finalStringToDisplay, "Temp: %s*C", temperatureString);
+  
+  // Finally, we will display it on the screen.
   osd.displayString(1, 7, finalStringToDisplay);
   Serial.println(finalStringToDisplay);
 }
+
+// Same as POINT 10,
+// the only difference is that this is for humidity.
 void displayHumidity() {
-  // convert float to string
   char humidityString[16];
   dtostrf(humidity, 4, 2, humidityString);
 
@@ -365,3 +388,24 @@ void displayHumidity() {
   osd.displayString(1, 21, finalStringToDisplay);
   Serial.println(finalStringToDisplay);
 }
+
+// Same as POINT 10,
+// the only difference is that this is for device 1.
+void displayDevice1() {
+  // 1: <device name> :<state (initially off)>
+  char finalStringToDisplay[32];
+  sprintf(finalStringToDisplay, "1: %s :%s", nameOfDevice1, stateOfDevice1);
+  osd.displayString(14, 2, finalStringToDisplay);
+  Serial.println(finalStringToDisplay);
+}
+
+// Same as POINT 10,
+// the only difference is that this is for device2.
+void displayDevice2() {
+  // 2: <device name> :<state (initially off)>
+  char finalStringToDisplay[32];
+  sprintf(finalStringToDisplay, "2: %s :%s", nameOfDevice2, stateOfDevice2);
+  osd.displayString(14, 16, finalStringToDisplay);
+  Serial.println(finalStringToDisplay);
+}
+
