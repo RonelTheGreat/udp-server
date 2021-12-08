@@ -26,12 +26,17 @@ unsigned int udpPort = 1032;
 
 float temperature = 0.0;
 float humidity = 0.0;
-const float temperatureThreshold = 31.00;
+const float temperatureThreshold = 34.00;
 
-// for screen/display
+// for dht display
 unsigned long timeElapsed = 0;
-unsigned long lastScreenRefresh = 0;
-const unsigned int screenTimeout = 1000;
+unsigned long lastClear = 0;
+unsigned long lastDisplay = 0;
+
+const unsigned int displayTimeout = 5000;
+const unsigned int clearTimeout = 15000;
+
+bool displayState = true;
 
 void setup() {
   Serial.begin(115200);
@@ -44,7 +49,7 @@ void setup() {
 void loop() {
   timeElapsed = millis();
   parseIncomingPackets();
-  displayData();
+  displayDhtData();
 }
 
 void configurePins() {
@@ -106,19 +111,23 @@ void parseDevicePackets() {
 
   if (strcmp(packetBuffer, "A11") == 0) {
     strcpy(stateOfDevice1, "ON");
+    displayDevice1();
     digitalWrite(ledPin1, HIGH);
   }
   if (strcmp(packetBuffer, "A10") == 0) {
     strcpy(stateOfDevice1, "OFF");
+    osd.displayString(11, 1, "             ");
     digitalWrite(ledPin1, LOW);
   }
 
   if (strcmp(packetBuffer, "A21") == 0) {
     strcpy(stateOfDevice2, "ON");
+    displayDevice2();
     digitalWrite(ledPin2, HIGH);
   }
   if (strcmp(packetBuffer, "A20") == 0) {
     strcpy(stateOfDevice2, "OFF");
+    osd.displayString(11, 15, "             ");
     digitalWrite(ledPin2, LOW);
   }
 }
@@ -155,28 +164,37 @@ void checkTemperature() {
 }
 
 
-void displayData() {
-  if (timeElapsed - lastScreenRefresh >= screenTimeout) {
-    lastScreenRefresh = timeElapsed;
+void displayDhtData() {
+  if (displayState) {
     displayTemperature();
     displayHumidity();
-    displayDevice1();
-    displayDevice2();
-    Serial.println();
+  } else {
+    osd.displayString(1, 2, "                             ");
+  }
+  
+  // turn on display for 5 seconds 
+  if (timeElapsed - lastDisplay >= displayTimeout  && displayState) {
+    displayState = false;
+    lastClear = timeElapsed;
+  }
+
+  if (timeElapsed - lastClear >= clearTimeout && !displayState) {
+    displayState = true;
+    lastDisplay = timeElapsed;
   }
 }
 void displayDevice1() {
   // 1: <device name> :<state (initially off)>
   char finalStringToDisplay[32];
-  sprintf(finalStringToDisplay, "1: %s :%s", nameOfDevice1, stateOfDevice1);
-  osd.displayString(14, 2, finalStringToDisplay);
+  sprintf(finalStringToDisplay, "1:%s:%s", nameOfDevice1, stateOfDevice1);
+  osd.displayString(11, 1, finalStringToDisplay);
   Serial.println(finalStringToDisplay);
 }
 void displayDevice2() {
   // 2: <device name> :<state (initially off)>
   char finalStringToDisplay[32];
-  sprintf(finalStringToDisplay, "2: %s :%s", nameOfDevice2, stateOfDevice2);
-  osd.displayString(14, 16, finalStringToDisplay);
+  sprintf(finalStringToDisplay, "2:%s:%s", nameOfDevice2, stateOfDevice2);
+  osd.displayString(11, 15, finalStringToDisplay);
   Serial.println(finalStringToDisplay);
 }
 void displayTemperature() {
@@ -185,8 +203,8 @@ void displayTemperature() {
   dtostrf(temperature, 4, 2, temperatureString);
 
   char finalStringToDisplay[32];
-  sprintf(finalStringToDisplay, "Temp: %s*C", temperatureString);
-  osd.displayString(1, 7, finalStringToDisplay);
+  sprintf(finalStringToDisplay, "Temp:%s*C", temperatureString);
+  osd.displayString(1, 2, finalStringToDisplay);
   Serial.println(finalStringToDisplay);
 }
 void displayHumidity() {
@@ -195,7 +213,7 @@ void displayHumidity() {
   dtostrf(humidity, 4, 2, humidityString);
 
   char finalStringToDisplay[32];
-  sprintf(finalStringToDisplay, "Hum: %s%%", humidityString);
-  osd.displayString(1, 21, finalStringToDisplay);
+  sprintf(finalStringToDisplay, "Hum:%s%%", humidityString);
+  osd.displayString(1, 15, finalStringToDisplay);
   Serial.println(finalStringToDisplay);
 }
